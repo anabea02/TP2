@@ -1,0 +1,369 @@
+#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_DEPRECATE  
+#define _CRT_NONSTDC_NO_DEPRECATE
+
+#include <conio.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <windows.h>
+#include <stdbool.h>
+#include <time.h>
+#include <string.h>
+#include <locale.h>
+
+/*Trabalho realizado por: Ana Carvalho, n�23544
+EIM 1�ano
+Estrutura de dados avan�adas*/
+
+typedef struct Operation
+{
+	int numJob;
+	int numOp;
+	int numMachine;
+	int time;
+	struct Operation* next;
+} Op;
+
+//Prot�tipos
+/*void pressToContinue();
+int menu();
+void writeFile(Op* new);
+Op* readFile();
+int listOp(Op* operations);
+Op* insertOp(Op* operations, int nOp, int nMachine, int t);
+Op* insertMachines(Op* operations);
+int removeAsk();
+Op* removeOp(Op* operations, int removedOp);
+Op* insertChanged(Op* operations, int changedOp);
+Op* changeOp(Op* operations);
+int getNextOpId(int oldOpId, Op* operations);
+int getLowestOpId(Op* operations);*/
+
+int main() {
+	setlocale(LC_ALL, "Portuguese");
+	int option = 0;
+	Op* operations = readFile(); //Leitura do ficheiro no inicio para recuperar as opera��es guardadas
+	while (true) {
+		system("cls");
+		printf("Trabalho realizado por: Ana Carvalho, n�23544\n");
+		printf("EIM 1�ano\nEstrutura de dados avan�adas\n");
+		printf("\t\t\t\t-------------MENU-------------\n\n");
+		option = menu();
+		int removedOp = 0;
+		switch (option) {
+		case 0:
+			writeFile(operations);
+			exit(EXIT_SUCCESS);
+			break;
+		case 1:
+			system("cls");
+			listOp(operations);
+			pressToContinue();
+			break;
+		case 2:
+			system("cls");
+			printf("\t\t\t\t-------------INSERIR OPERA��O-------------\n\n");
+			operations = insertMachines(operations);
+			pressToContinue();
+			break;
+		case 3:
+			system("cls");
+			printf("\t\t\t\t-------------REMOVER OPERA��O-------------\n\n");
+			listOp(operations);
+			removedOp = removeAsk();
+			operations = removeOp(operations, removedOp);
+			pressToContinue();
+			break;
+		case 4:
+			system("cls");
+			printf("\t\t\t\t-------------ALTERAR OPERA��O-------------\n\n");
+			listOp(operations);
+			operations = changeOp(operations);
+			pressToContinue();
+			break;
+		case 5:
+			system("cls");
+			printf("\t\t-------------M�NIMA DE UNIDADES DE TEMPO NECESS�RIAS PARA COMPLETAR O JOB-------------\n\n");
+			LowestTime(operations);
+			pressToContinue();
+			break;
+		case 6:
+			system("cls");
+			printf("\t\t-------------M�XIMA DE UNIDADES DE TEMPO NECESS�RIAS PARA COMPLETAR O JOB-------------\n\n");
+			HighestTime(operations);
+			pressToContinue();
+			break;
+		case 7:
+			system("cls");
+			printf("\t\t-------------M�DIA DE UNIDADES DE TEMPO NECESS�RIAS PARA COMPLETAR UMA OPERA��O-------------\n\n");
+			avgOp(operations);
+			pressToContinue();
+			break;
+		default:
+			printf("Op��o inv�lida\n");
+			break;
+		}
+
+	}
+
+}
+
+void pressToContinue() {
+	printf("\nPrima qualquer tecla para continuar.\n");
+	getch();
+}
+
+int menu() {
+
+	int option = 0;
+
+	printf("1. Listar jobs\n");
+	printf("2. Inserir um job\n");
+	printf("3. Remo��o de uma opera��o\n");
+	printf("4. Altera��o uma opera��o\n");
+	printf("5. Listar a quantidade m�nima de tempo necess�rio para completar o job\n");
+	printf("6. Listar a quantidade m�xima de tempo necess�rio para completar o job\n");
+	printf("7. Listar a quantidade m�dia de tempo necess�rio para completar uma opera�a�\n");
+	printf("0. SAIR E GUARDAR\n\n");
+	printf("Escolha uma op��o: \n");
+
+	scanf("%d", &option);
+
+	return option;
+}
+
+void writeFile(Op* new)
+{
+	FILE* infile;
+	infile = fopen("jobs_data.txt", "w");
+
+	for (; new != NULL; new = new->next) {
+
+		fprintf(infile, "Opera��o: %d  M�quina(s): %d  Tempo(respetivamente): %d\n", new->numOp, new->numMachine, new->time);
+	}
+
+	if (fprintf != 0)
+		printf("Dados guardados com sucesso!\n");
+	else
+		printf("Erro a escrever para ficheiro!\n");
+
+	fclose(infile);
+
+}
+
+Op* readFile() { //Fun��o para ler o ficheiro
+	int numOp, numMachine, time;
+	Op* operations = NULL;
+	FILE* outfile = fopen("jobs_data.txt", "r");
+
+	if (outfile != NULL) {
+		while (!feof(outfile)) { //Enquanto n�o chegar ao fim do ficheiro
+			fscanf(outfile, "Opera��o: %d  M�quina(s): %d  Tempo(respetivamente): %d\n", &numOp, &numMachine, &time);
+			operations = insertOp(operations, numOp, numMachine, time); //Cada vez que uma linha � lida, � inserida a respetiva opera��o lida � lista ligada
+		}
+	}
+	else {
+		printf("Ficheiro vazio\n");
+	}
+	fclose(outfile);
+	return (operations);
+}
+
+int listOp(Op* operations)
+{
+	Op* list = operations;
+	while (list != NULL) //Percorre os elementos da lista ligada
+	{
+		printf("Opera��o: %d  M�quina(s): %d  Tempo(respetivamente): %d\n", list->numOp, list->numMachine, list->time);
+		list = list->next;
+	}
+}
+
+
+Op* insertJob(Op* operations,int nJob, int nOp, int nMachine, int t) {
+
+	Op* new = malloc(sizeof(Op));
+
+	if (new != NULL) {
+		new->numJob = nJob;
+		new->numOp = nOp;
+		new->numMachine = nMachine;
+		new->time = t;
+		new->next = operations;
+		return(new);
+
+	}
+	else return(operations);
+}
+
+int getnextOpId(Op* operations) { //Esta � usada para procurar o numero de opera��o maior, ou seja, a primeira opera��o, mas n�o necessariamente o primeiro elemnto da lista ligada
+
+	int currentOpId = 1;
+
+	for (int opId = 1; opId < 7; opId = opId++) {
+		for (Op* opLoop = operations; opLoop != NULL; opLoop = opLoop->next) { //Vai percorrer a lista ligada
+			if (opId != opLoop->numOp) {
+				currentOpId = opId;
+			}
+
+		}
+	}
+
+	return currentOpId;
+}
+
+Op* insertMachines(Op* operations) {
+
+	int insNumMachine = 0, insTime = 0;
+	char moreMachines = 0;
+	int currentOpId = getnextOpId(operations);
+
+	if (currentOpId > 7) {
+		printf("O n�mero de opera��es j� foi excedido.");
+	}
+
+	do {
+		moreMachines = 0;
+
+		printf("Est� a inserir na opera��o n� %d\n\n", currentOpId);
+		printf("Inserir uma m�quina(0-8): \n");
+		scanf("%d", &insNumMachine);
+		printf("Inserir o seu respetivo tempo: \n");
+		scanf("%d", &insTime);
+
+		for (Op* opLoop = operations; opLoop != NULL; opLoop = opLoop = opLoop->next) { //Verifica se a mesma combina��o j� existe na lista ligada
+			if ((currentOpId == opLoop->numOp) && (insNumMachine == opLoop->numMachine)) {
+				printf("Essa combina��o de opera��o, m�quina e tempo j� existe.\n");
+				break;
+
+			}
+			else if ((currentOpId != opLoop->numOp) && (insNumMachine != opLoop->numMachine)) {
+				operations = insertOp(operations, currentOpId, insNumMachine, insTime);
+				break;
+			}
+		}
+
+		printf("Deseja adicionar mais m�quinas? [S/N]\n");
+		scanf(" %c", &moreMachines);
+
+	} while (moreMachines == 'S' || moreMachines == 's');
+
+	return (operations);
+}
+
+int removeAsk() {
+	int removedOp = 0;
+
+	printf("\nInsira a opera��o que deseja remover: \n");
+	scanf("%d", &removedOp);
+
+	return removedOp;
+}
+
+Op* removeOp(Op* operations, int removedOp) {
+	Op* opPrevious;
+	Op* opCurrent = 0;
+	opCurrent = operations;
+
+	while (opCurrent != NULL) {
+		opCurrent = operations;
+		if (removedOp == operations->numOp) { //Remove a primeira ocurr�ncia
+			operations = opCurrent->next;
+			free(opCurrent); //Vai liberar espa�o onde essa opera��o est� alocada
+
+		}
+		else { //Remove as seguintes ocurr�ncias
+			opPrevious = operations;
+			opCurrent = opPrevious->next;
+
+			while ((opCurrent != NULL) && (opCurrent->numOp != removedOp)) {
+				opPrevious = opCurrent;
+				opCurrent = opCurrent->next;
+			}
+
+			if (opCurrent != NULL) {
+				opPrevious->next = opCurrent->next;
+				free(opCurrent);
+
+			}
+		}
+	}
+
+	return(operations);
+}
+
+Op* insertChanged(Op* operations, int changedOp) { //Fun��o de inser��o mas sem a pergunta de inserir o n�mero de opera��o
+	int insNumMachine = 0, insTime = 0;
+	char moreMachines = 0;
+
+	do {
+		moreMachines = 0;
+
+		printf("Inserir uma m�quina: \n");
+		scanf("%d", &insNumMachine);
+		printf("Inserir o seu respetivo tempo: \n");
+		scanf("%d", &insTime);
+
+		for (Op* opLoop = operations; opLoop != NULL; opLoop = opLoop = opLoop->next) { //verifica se j� tem a msm combina��o na lista ligada
+			if ((changedOp == opLoop->numOp) && (insNumMachine == opLoop->numMachine)) {
+				printf("Essa combina��o de opera��o, m�quina e tempo j� existe.\n");
+				break;
+
+			}
+			else if ((changedOp != opLoop->numOp) && (insNumMachine != opLoop->numMachine)) {
+				operations = insertOp(operations, changedOp, insNumMachine, insTime);
+				break;
+			}
+		}
+
+		printf("Deseja adicionar mais m�quinas? [S/N]\n");
+		scanf(" %c", &moreMachines);
+
+	} while (moreMachines == 'S' || moreMachines == 's');
+
+	return (operations);
+}
+
+Op* changeOp(Op* operations) { //Para a fun��o de alterar apenas chamei a fun��o de remover e a de inserir 
+
+	int changedOp = 0;
+
+	printf("\nInsira a opera��o que deseja alterar: \n");
+	scanf("%d", &changedOp);
+
+	operations = removeOp(operations, changedOp);
+	operations = insertChanged(operations, changedOp);
+
+	return (operations);
+
+}
+
+int getNextOpId(int oldOpId, Op* operations) { //Esta fun��o serve para ir buscar o n�mero de opera��o seguinte
+	int nextOpId = INT_MAX;
+
+	for (; operations != NULL; operations = operations->next) { //Vai percorrer a lista ligada 
+
+		if (operations->numOp > oldOpId && operations->numOp < nextOpId) { //Verifica qual � o n�mero maior que o n�mero de opera��o anterior e menor que o seguinte
+			nextOpId = operations->numOp;
+		}
+	}
+
+	if (nextOpId == INT_MAX) return -1;
+
+	return nextOpId; //retorna o numero de opera��o seguinte
+}
+
+int getLowestOpId(Op* operations) { //Esta � usada para procurar o numero de opera��o menor, ou seja, a primeira opera��o, mas n�o necessariamente o primeiro elemnto da lista ligada
+
+	int minOpId = INT_MAX;
+
+	while (operations != NULL) { //Vai percorrer a lista ligada
+		if (minOpId >= operations->numOp) {
+			minOpId = operations->numOp;
+
+		}
+		operations = operations->next;
+	}
+	return minOpId;
+}
+
