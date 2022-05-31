@@ -1,0 +1,141 @@
+#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_DEPRECATE  
+#define _CRT_NONSTDC_NO_DEPRECATE
+
+#include <conio.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <windows.h>
+#include <stdbool.h>
+#include <time.h>
+#include <string.h>
+#include <locale.h>
+
+/*Trabalho realizado por: Ana Carvalho, n�23544
+EIM 1�ano
+Estrutura de dados avan�adas*/
+
+typedef struct Operation
+{
+	int numOp;
+	int numMachine;
+	int time;
+	struct Operation* next;
+} Op;
+
+Op* link[8] = { 0 };
+
+void writeFile(Op* new)
+{
+    FILE* infile;
+    infile = fopen("jobs_data.txt", "w");
+
+    for (; new != NULL; new = new->next) {
+
+        fprintf(infile, "Opera��o: %d  M�quina(s): %d  Tempo(respetivamente): %d\n", new->numOp, new->numMachine, new->time);
+    }
+
+    if (fprintf != 0)
+        printf("Dados guardados com sucesso!\n");
+    else
+        printf("Erro a escrever para ficheiro!\n");
+
+    fclose(infile);
+
+}
+
+int push_front(Op** head, int nOp, int nMachine, int t)
+{
+    Op* new = malloc(sizeof(Op));
+
+    if (new != NULL)
+    {
+        new->numOp = nOp;
+        new->numMachine = nMachine;
+        new->time = t;
+        new->next = *head;
+        *head = new;
+    }
+
+    return (new != NULL);
+}
+
+void output(Op** head)
+{
+ 
+    for (Op* current = *head; current != NULL; current = current->next)
+    {
+        printf("Opera��o: %d  M�quina(s): %d  Tempo(respetivamente): %d\n", current->numOp, current->numMachine, current->time);
+    }
+}
+
+void display(Op** set, size_t n, int nJob)
+{
+    printf("Job: %d", nJob);
+    for (size_t i = 0; i < n; i++)
+    {
+        output(set++, nJob);
+        putchar('\n');
+    }
+}
+
+int insert()
+{
+    int insNumMachine = 0, insNumOp = 0, insTime = 0, insNumJob = 0;
+    char moreMachines = 0;
+    Op* link[8] = { 0 };
+
+    printf("Inserir no job (1-8): ");
+    scanf("%d", &insNumJob);
+
+    do {
+        moreMachines = 0;
+
+        printf("Inserir na opera��o (1-7): ");
+        scanf("%d", &insNumOp);
+        printf("Inserir uma m�quina(1-8): \n");
+        scanf("%d", &insNumMachine);
+        printf("Inserir o seu respetivo tempo: \n");
+        scanf("%d", &insTime);
+        push_front(&link[insNumJob],insNumOp,insNumMachine,insTime);
+        
+        printf("Deseja adicionar mais m�quinas? [S/N]\n");
+        scanf(" %c", &moreMachines);
+
+    } while (moreMachines == 'S' || moreMachines == 's');
+
+    display(link, sizeof(link) / sizeof(*link), insNumJob);
+
+    return link;
+}
+
+int removeJob(Op *arr[], int size) {
+    int removedJob = 0;
+
+    printf("Insira o job que deseja remover: \n");
+    scanf("%d", &removedJob);
+
+    for (int i = removedJob - 1; i < size - 1; i++)
+    {
+        arr[i] = arr[i + 1];
+    }
+
+    /* Decrement array size by 1 */
+    size--;
+
+}
+
+int main() {
+    push_front(&link[1], 1, 1, 1);
+    push_front(&link[1], 2, 2,2);
+    push_front(&link[2], 3, 3, 3);
+    int size = 2;
+
+    removeJob(&link, size);
+    display(link, sizeof(link) / sizeof(*link),size);
+
+
+}
+
+
+
